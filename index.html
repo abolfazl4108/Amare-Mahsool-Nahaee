@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>آمار محصول نهایی</title>
+
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#6a11cb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="آمار محصول">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" id="appManifest">
+<link rel="apple-touch-icon" id="appleIcon">
+
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Vazirmatn', sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #6a11cb 100%);
+    min-height: 100vh;
+    color: #2c3e50;
+    padding: 10px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .app {
+    max-width: 520px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    overflow: hidden;
+    position: relative;
+  }
+  .header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 16px 18px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 62px;
+  }
+  .header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+
+  .info-btn {
+    position: absolute;
+    left: 14px; top: 50%;
+    transform: translateY(-50%);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+    border: 2px solid rgba(255,255,255,0.55);
+    color: #fff;
+    font-size: 20px; font-weight: 700;
+    font-family: Georgia, serif;
+    font-style: italic;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2), inset 0 -2px 6px rgba(255,255,255,0.25);
+    transition: transform 0.2s, background 0.2s;
+    padding: 0; line-height: 1;
+    animation: pulseInfo 2.6s ease-in-out infinite;
+  }
+  .info-btn:active { transform: translateY(-50%) scale(0.92); }
+  .info-btn::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px dashed rgba(255,255,255,0.35);
+    animation: spinInfo 12s linear infinite;
+  }
+  @keyframes pulseInfo {
+    0%, 100% { box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 0 rgba(255,255,255,0.5); }
+    50% { box-shadow: 0 4px 12px rgba(0,0,0,0.2), 0 0 0 10px rgba(255,255,255,0); }
+  }
+  @keyframes spinInfo { to { transform: rotate(360deg); } }
+
+  /* Install button */
+  .install-bar {
+    display: none;
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    animation: slideDown 0.4s;
+  }
+  .install-bar.show { display: flex; }
+  .install-bar .install-btn {
+    background: #fff;
+    color: #11998e;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 12.5px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .install-bar .install-btn:active { transform: scale(0.96); }
+  @keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .tabs { display: flex; background: #f0f2f8; border-bottom: 2px solid #e0e4ee; }
+  .tab-btn {
+    flex: 1; padding: 14px 8px;
+    background: none; border: none;
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    color: #7a8399; cursor: pointer;
+    position: relative; transition: color 0.25s;
+  }
+  .tab-btn.active { color: #6a11cb; }
+  .tab-btn.active::after {
+    content: ''; position: absolute;
+    bottom: -2px; left: 20%; right: 20%; height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 3px;
+  }
+
+  .tab-content { display: none; padding: 16px; }
+  .tab-content.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform:none;} }
+
+  .section-card {
+    background: #f8f9fd;
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #eef1f8;
+  }
+
+  .row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .row > * { flex: 1; }
+
+  label {
+    display: block;
+    font-size: 12px; font-weight: 600;
+    color: #55607a; margin-bottom: 5px;
+  }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid #dde3ee;
+    border-radius: 10px;
+    font-family: inherit; font-size: 14px;
+    background: #fff; color: #2c3e50;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118,75,162,0.13);
+  }
+  textarea { resize: vertical; min-height: 55px; }
+
+  .date-wrap { position: relative; }
+  .date-wrap input { padding-left: 40px; cursor: pointer; }
+  .date-wrap .cal-icon {
+    position: absolute;
+    left: 8px; top: 50%;
+    transform: translateY(-50%);
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .date-shift {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .shift-selector { display: flex; gap: 6px; }
+  .shift-selector input { display: none; }
+  .shift-selector label {
+    flex: 1; text-align: center;
+    padding: 9px 0;
+    background: #fff;
+    border: 1.5px solid #dde3ee;
+    border-radius: 10px;
+    font-size: 14px; font-weight: 700;
+    color: #7a8399;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin: 0;
+  }
+  .shift-selector input:checked + label {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(118,75,162,0.35);
+  }
+
+  .section-title {
+    font-size: 13px; font-weight: 700;
+    color: #6a11cb;
+    margin: 4px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::before {
+    content: ''; width: 4px; height: 14px;
+    background: linear-gradient(180deg, #667eea, #764ba2);
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .section-title .title-text { flex: 1; }
+
+  .sum-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px 4px 8px;
+    border-radius: 30px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(118,75,162,0.4);
+    letter-spacing: 0.2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .sum-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+    animation: shine 3s infinite;
+  }
+  @keyframes shine {
+    0% { transform: translateX(-120%); }
+    60%, 100% { transform: translateX(120%); }
+  }
+  .sum-badge .sum-lbl { font-size: 10.5px; opacity: 0.92; }
+  .sum-badge .sum-val {
+    background: rgba(255,255,255,0.22);
+    padding: 1px 7px;
+    border-radius: 20px;
+    font-size: 12px;
+    min-width: 32px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.2s;
+  }
+  .sum-badge .sum-val.pop { transform: scale(1.18); }
+  .sum-badge.green {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    box-shadow: 0 3px 10px rgba(56,239,125,0.4);
+  }
+
+  .defects-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .defect-item {
+    background: #fff;
+    border: 1.5px solid #dde3ee;
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .defect-item .name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #55607a;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .defect-item input {
+    padding: 6px 6px;
+    font-size: 13px;
+    text-align: center;
+    border-radius: 8px;
+    border: 1px solid #e3e8f2;
+    background: #f8f9fd;
+  }
+  .defect-item .del {
+    position: absolute;
+    top: -6px; left: -6px;
+    background: #ff4757;
+    color: #fff;
+    border: 2px solid #fff;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: 0 2px 6px rgba(255,71,87,0.4);
+  }
+
+  .add-defect-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .add-defect-row input { flex: 1; }
+  .add-defect-row button {
+    flex: 0 0 auto;
+    padding: 0 18px;
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(56,239,125,0.3);
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    background: #f8f9fd;
+    border-top: 1px solid #eef1f8;
+  }
+  .actions button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .actions button:active { transform: scale(0.97); }
+  .btn-export {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(118,75,162,0.4);
+  }
+  .btn-reset {
+    background: #fff;
+    color: #ff4757;
+    border: 2px solid #ff4757 !important;
+  }
+
+  /* ---- Output image styling ---- */
+  .output-wrapper {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    background: #fff;
+    z-index: -1;
+  }
+  .output-card {
+    width: 480px;
+    padding: 22px;
+    background: #ffffff;
+    font-family: 'Vazirmatn', sans-serif;
+    direction: rtl;
+    color: #2c3e50;
+    border: 6px solid #6a11cb;
+    border-radius: 16px;
+  }
+  .output-card .out-header {
+    text-align: center;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+  }
+  .output-card .out-header h2 { margin: 0; font-size: 18px; }
+  .output-card .out-header .out-shift { font-size: 13px; margin-top: 4px; opacity: 0.9; }
+
+  .out-top {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .out-top > div {
+    flex: 1;
+    background: #f8f9fd;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-right: 4px solid #764ba2;
+  }
+  .out-top .lbl { color: #7a8399; font-size: 11px; display: block; }
+  .out-top .val { font-weight: 700; font-size: 15px; }
+
+  .out-plan {
+    background: #f8f9fd;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    border-right: 4px solid #667eea;
+  }
+  .out-plan .lbl { color: #7a8399; font-size: 11px; display: block; }
+  .out-plan .val { font-weight: 700; font-size: 15px; }
+
+  .out-degrees {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .out-degrees .deg {
+    background: linear-gradient(135deg, #eef1fb, #e7ecff);
+    border-radius: 9px;
+    padding: 8px 4px;
+    text-align: center;
+    border: 1px solid #dfe5f5;
+  }
+  .out-degrees .deg .lbl { font-size: 11px; color: #6a11cb; font-weight: 700; }
+  .out-degrees .deg .val { font-size: 16px; font-weight: 700; color: #2c3e50; }
+
+  .out-fancy-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 18px 0 12px;
+    color: #764ba2;
+  }
+  .out-fancy-divider .line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #a78bfa, #764ba2, #a78bfa, transparent);
+    border-radius: 2px;
+    position: relative;
+  }
+  .out-fancy-divider .line::before,
+  .out-fancy-divider .line::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 6px; height: 6px;
+    background: #764ba2;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 6px rgba(118,75,162,0.6);
+  }
+  .out-fancy-divider .line::before { right: 0; }
+  .out-fancy-divider .line::after { left: 0; }
+  .out-fancy-divider .star {
+    font-size: 16px;
+    color: #764ba2;
+    text-shadow: 0 0 6px rgba(118,75,162,0.5);
+    animation: twinkle 2s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.7; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1.08); }
+  }
+  .out-fancy-divider .star.left { color: #667eea; }
+  .out-fancy-divider .star.right { color: #a78bfa; }
+
+  .out-defects-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6a11cb;
+    margin: 0 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px dashed #e0e4ee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .out-defects-title .out-sum-badge {
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 3px 8px rgba(56,239,125,0.35);
+  }
+  .out-defects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .out-defects .chip {
+    background: #fff;
+    border: 1.5px solid #dde3ee;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #55607a;
+  }
+  .out-defects .chip b { color: #764ba2; }
+
+  .out-desc {
+    background: #fff8e6;
+    border-right: 4px solid #ffa502;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  .out-desc .lbl { color: #b8860b; font-size: 11px; font-weight: 700; display: block; margin-bottom: 3px; }
+
+  .toast {
+    position: fixed;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #2c3e50;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: all 0.35s;
+    z-index: 9999;
+    pointer-events: none;
+    text-align: center;
+    max-width: 90%;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast.success { background: linear-gradient(135deg, #11998e, #38ef7d); }
+  .toast.error { background: linear-gradient(135deg, #eb3349, #f45c43); }
+  .toast.reset-toast {
+    background: linear-gradient(135deg, #eb3349, #f45c43);
+    box-shadow: 0 8px 24px rgba(235,51,73,0.5);
+  }
+
+  /* ====== Jalali date picker ====== */
+  .jp-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 16px;
+  }
+  .jp-overlay.show { display: flex; animation: fadeIn 0.2s; }
+  .jp-box {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 360px;
+    padding: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    direction: rtl;
+  }
+  .jp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 12px;
+    padding: 8px 10px;
+    color: #fff;
+  }
+  .jp-head button {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .jp-head button:active { background: rgba(255,255,255,0.35); }
+  .jp-title { font-weight: 700; font-size: 15px; }
+  .jp-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .jp-weekdays div {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #7a8399;
+    padding: 4px 0;
+  }
+  .jp-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .jp-days button {
+    aspect-ratio: 1;
+    border: none;
+    background: #f4f6fb;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #55607a;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .jp-days button:hover { background: #e7ecff; }
+  .jp-days button.empty { background: transparent; cursor: default; }
+  .jp-days button.today {
+    border: 2px solid #764ba2;
+    background: #fff;
+    color: #764ba2;
+  }
+  .jp-days button.selected {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(118,75,162,0.4);
+  }
+  .jp-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .jp-footer button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .jp-today-btn { background: #eef1fb; color: #6a11cb; }
+  .jp-cancel-btn { background: #ffe5e9; color: #ff4757; }
+
+  /* ====== About modal ====== */
+  .about-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20,20,40,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    padding: 16px;
+    backdrop-filter: blur(4px);
+  }
+  .about-overlay.show { display: flex; animation: fadeIn 0.25s; }
+  .about-box {
+    background: #fff;
+    border-radius: 22px;
+    width: 100%;
+    max-width: 340px;
+    padding: 24px 20px 18px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    direction: rtl;
+  }
+  .about-box::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(118,75,162,0.18), transparent 70%);
+  }
+  .about-box::after {
+    content: '';
+    position: absolute;
+    bottom: -70px; left: -70px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(102,126,234,0.18), transparent 70%);
+  }
+  .about-avatar {
+    width: 72px; height: 72px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 10px 24px rgba(118,75,162,0.45);
+    position: relative;
+    z-index: 1;
+  }
+  .about-role {
+    font-size: 13px;
+    color: #7a8399;
+    margin-bottom: 4px;
+    position: relative;
+    z-index: 1;
+    font-weight: 600;
+  }
+  .about-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+  }
+  .about-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #dde3ee, transparent);
+    margin: 12px 0;
+    position: relative;
+    z-index: 1;
+  }
+  .about-copy {
+    font-family: 'Dancing Script', cursive;
+    font-size: 15px;
+    color: #6a11cb;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+    direction: ltr;
+    line-height: 1.6;
+  }
+  .about-copy .year {
+    display: block;
+    font-size: 13px;
+    color: #764ba2;
+    margin-top: 2px;
+  }
+  .about-close {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(118,75,162,0.4);
+    position: relative;
+    z-index: 1;
+  }
+  .about-close:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <button class="info-btn" id="infoBtn" title="درباره برنامه">i</button>
+    <h1>آمار محصول نهایی</h1>
+  </div>
+
+  <!-- PWA Install Bar -->
+  <div class="install-bar" id="installBar">
+    <span>📲 این برنامه را روی گوشی خود نصب کنید</span>
+    <button class="install-btn" id="installBtn">نصب</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="line1">خط ۱</button>
+    <button class="tab-btn" data-tab="line2">خط ۲</button>
+  </div>
+
+  <!-- ============ LINE 1 ============ -->
+  <div class="tab-content active" id="line1">
+    <div class="section-card">
+      <div class="date-shift">
+        <div>
+          <label>📅 تاریخ</label>
+          <div class="date-wrap">
+            <input type="text" class="inp-date" placeholder="انتخاب تاریخ" readonly>
+            <div class="cal-icon">📅</div>
+          </div>
+        </div>
+        <div>
+          <label>🕐 شیفت</label>
+          <div class="shift-selector">
+            <input type="radio" name="shift-line1" id="s1-A" value="A"><label for="s1-A">A</label>
+            <input type="radio" name="shift-line1" id="s1-B" value="B"><label for="s1-B">B</label>
+            <input type="radio" name="shift-line1" id="s1-C" value="C"><label for="s1-C">C</label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label>👤 نام کاربر</label>
+        <input type="text" class="inp-user" placeholder="نام خود را وارد کنید">
+      </div>
+      <div style="margin-top:10px;">
+        <label>🎨 نام طرح</label>
+        <input type="text" class="inp-plan" placeholder="مثال: شیوا ۱۳۰">
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">
+        <span class="title-text">درجه‌ها (درصد)</span>
+        <span class="sum-badge">
+          <span class="sum-lbl">جمع</span>
+          <span class="sum-val" id="degSum-line1">0</span>
+        </span>
+      </div>
+      <div class="row">
+        <div><label>درجه ۱</label><input type="number" class="inp-deg" data-d="1" placeholder="%" min="0" max="100"></div>
+        <div><label>درجه ۲</label><input type="number" class="inp-deg" data-d="2" placeholder="%" min="0" max="100"></div>
+      </div>
+      <div class="row">
+        <div><label>درجه ۴</label><input type="number" class="inp-deg" data-d="4" placeholder="%" min="0" max="100"></div>
+        <div><label>درجه ۵</label><input type="number" class="inp-deg" data-d="5" placeholder="%" min="0" max="100"></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">
+        <span class="title-text">عیوب (درصد)</span>
+        <span class="sum-badge green">
+          <span class="sum-lbl">جمع عیوب</span>
+          <span class="sum-val" id="defSum-line1">0</span>
+        </span>
+      </div>
+      <div class="defects-grid" id="defects-line1">
+        <div class="defect-item"><span class="name">سایز</span><input type="number" class="defect-inp" data-name="سایز" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">قوس</span><input type="number" class="defect-inp" data-name="قوس" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">پاک شدگی</span><input type="number" class="defect-inp" data-name="پاک شدگی" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">لکه نانو پولیش</span><input type="number" class="defect-inp" data-name="لکه نانو پولیش" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">چمفر ناقص</span><input type="number" class="defect-inp" data-name="چمفر ناقص" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">چکه رنگ</span><input type="number" class="defect-inp" data-name="چکه رنگ" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">حباب</span><input type="number" class="defect-inp" data-name="حباب" placeholder="%" min="0" max="100"></div>
+      </div>
+
+      <div class="add-defect-row">
+        <input type="text" class="new-defect-name" placeholder="نام عیب جدید را وارد کنید...">
+        <button type="button" class="btn-add-defect">افزودن</button>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <label>📝 توضیحات</label>
+      <textarea class="inp-desc" placeholder="توضیحات خود را وارد کنید..."></textarea>
+    </div>
+  </div>
+
+  <!-- ============ LINE 2 ============ -->
+  <div class="tab-content" id="line2">
+    <div class="section-card">
+      <div class="date-shift">
+        <div>
+          <label>📅 تاریخ</label>
+          <div class="date-wrap">
+            <input type="text" class="inp-date" placeholder="انتخاب تاریخ" readonly>
+            <div class="cal-icon">📅</div>
+          </div>
+        </div>
+        <div>
+          <label>🕐 شیفت</label>
+          <div class="shift-selector">
+            <input type="radio" name="shift-line2" id="s2-A" value="A"><label for="s2-A">A</label>
+            <input type="radio" name="shift-line2" id="s2-B" value="B"><label for="s2-B">B</label>
+            <input type="radio" name="shift-line2" id="s2-C" value="C"><label for="s2-C">C</label>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label>👤 نام کاربر</label>
+        <input type="text" class="inp-user" placeholder="نام خود را وارد کنید">
+      </div>
+      <div style="margin-top:10px;">
+        <label>🎨 نام طرح</label>
+        <input type="text" class="inp-plan" placeholder="مثال: شیوا ۱۳۰">
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">
+        <span class="title-text">درجه‌ها (درصد)</span>
+        <span class="sum-badge">
+          <span class="sum-lbl">جمع</span>
+          <span class="sum-val" id="degSum-line2">0</span>
+        </span>
+      </div>
+      <div class="row">
+        <div><label>درجه ۱</label><input type="number" class="inp-deg" data-d="1" placeholder="%" min="0" max="100"></div>
+        <div><label>درجه ۲</label><input type="number" class="inp-deg" data-d="2" placeholder="%" min="0" max="100"></div>
+      </div>
+      <div class="row">
+        <div><label>درجه ۴</label><input type="number" class="inp-deg" data-d="4" placeholder="%" min="0" max="100"></div>
+        <div><label>درجه ۵</label><input type="number" class="inp-deg" data-d="5" placeholder="%" min="0" max="100"></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">
+        <span class="title-text">عیوب (درصد)</span>
+        <span class="sum-badge green">
+          <span class="sum-lbl">جمع عیوب</span>
+          <span class="sum-val" id="defSum-line2">0</span>
+        </span>
+      </div>
+      <div class="defects-grid" id="defects-line2">
+        <div class="defect-item"><span class="name">سایز</span><input type="number" class="defect-inp" data-name="سایز" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">قوس</span><input type="number" class="defect-inp" data-name="قوس" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">پاک شدگی</span><input type="number" class="defect-inp" data-name="پاک شدگی" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">لکه نانو پولیش</span><input type="number" class="defect-inp" data-name="لکه نانو پولیش" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">چمفر ناقص</span><input type="number" class="defect-inp" data-name="چمفر ناقص" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">چکه رنگ</span><input type="number" class="defect-inp" data-name="چکه رنگ" placeholder="%" min="0" max="100"></div>
+        <div class="defect-item"><span class="name">حباب</span><input type="number" class="defect-inp" data-name="حباب" placeholder="%" min="0" max="100"></div>
+      </div>
+
+      <div class="add-defect-row">
+        <input type="text" class="new-defect-name" placeholder="نام عیب جدید را وارد کنید...">
+        <button type="button" class="btn-add-defect">افزودن</button>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <label>📝 توضیحات</label>
+      <textarea class="inp-desc" placeholder="توضیحات خود را وارد کنید..."></textarea>
+    </div>
+  </div>
+
+  <!-- ============ ACTIONS ============ -->
+  <div class="actions">
+    <button class="btn-export">📸 خروجی عکس</button>
+    <button class="btn-reset">🔄 بازنشانی</button>
+  </div>
+</div>
+
+<!-- Jalali Date Picker Modal -->
+<div class="jp-overlay" id="jpOverlay">
+  <div class="jp-box">
+    <div class="jp-head">
+      <button type="button" id="jpPrev">‹</button>
+      <div class="jp-title" id="jpTitle">—</div>
+      <button type="button" id="jpNext">›</button>
+    </div>
+    <div class="jp-weekdays">
+      <div>ش</div><div>ی</div><div>د</div><div>س</div><div>چ</div><div>پ</div><div>ج</div>
+    </div>
+    <div class="jp-days" id="jpDays"></div>
+    <div class="jp-footer">
+      <button type="button" class="jp-today-btn" id="jpToday">امروز</button>
+      <button type="button" class="jp-cancel-btn" id="jpCancel">انصراف</button>
+    </div>
+  </div>
+</div>
+
+<!-- About Modal -->
+<div class="about-overlay" id="aboutOverlay">
+  <div class="about-box">
+    <div class="about-avatar">👨‍💻</div>
+    <div class="about-role">سازنده برنامه</div>
+    <div class="about-name">ابوالفضل محمودی اردکانی</div>
+    <div class="about-divider"></div>
+    <div class="about-copy">
+      © 2026 All Rights Reserved
+      <span class="year">Copyright · Made with ❤</span>
+    </div>
+    <button class="about-close" id="aboutClose">بستن</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="output-wrapper" id="outputWrapper"></div>
+
+<script>
+/* =========================================================
+   PWA DYNAMIC SETUP
+   ========================================================= */
+(function setupPWA() {
+  // --- Build an SVG icon (data URL) ---
+  function makeIconDataURL(size) {
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 512 512">
+        <defs>
+          <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#667eea"/>
+            <stop offset="100%" stop-color="#764ba2"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#e0e4f5" stop-opacity="0.85"/>
+          </linearGradient>
+        </defs>
+        <rect width="512" height="512" rx="110" fill="url(#g1)"/>
+        <path d="M150 340 Q150 200 256 200 Q362 200 362 340" stroke="#fff" stroke-width="26" fill="none" stroke-linecap="round"/>
+        <circle cx="256" cy="180" r="34" fill="#fff"/>
+        <rect x="150" y="380" width="212" height="34" rx="10" fill="url(#g2)"/>
+        <rect x="150" y="428" width="150" height="34" rx="10" fill="url(#g2)"/>
+        <text x="256" y="405" font-family="Verdana, sans-serif" font-size="26" font-weight="700" text-anchor="middle" fill="#6a11cb" opacity="0.0">QC</text>
+      </svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+  }
+
+  const icon192 = makeIconDataURL(192);
+  const icon512 = makeIconDataURL(512);
+
+  // --- Set apple touch icon ---
+  const appleIcon = document.getElementById('appleIcon');
+  if (appleIcon) {
+    appleIcon.rel = 'apple-touch-icon';
+    appleIcon.href = icon192;
+  }
+
+  // --- Build manifest as Blob URL ---
+  const manifest = {
+    name: "آمار محصول نهایی",
+    short_name: "آمار محصول",
+    description: "برنامه ثبت آمار محصول نهایی و کنترل کیفیت",
+    start_url: ".",
+    scope: ".",
+    display: "standalone",
+    orientation: "portrait",
+    background_color: "#ffffff",
+    theme_color: "#6a11cb",
+    lang: "fa",
+    dir: "rtl",
+    icons: [
+      { src: icon192, sizes: "192x192", type: "image/svg+xml", purpose: "any" },
+      { src: icon512, sizes: "512x512", type: "image/svg+xml", purpose: "any" },
+      { src: icon512, sizes: "512x512", type: "image/svg+xml", purpose: "maskable" }
+    ]
+  };
+
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  const manifestURL = URL.createObjectURL(manifestBlob);
+
+  const link = document.getElementById('appManifest');
+  if (link) link.href = manifestURL;
+
+  // --- Service worker (inline, via Blob URL, for basic caching) ---
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'qc-app-v1';
+      const ASSETS = [
+        'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&family=Dancing+Script:wght@600&display=swap',
+        'https://html2canvas.hertzen.com/dist/html2canvas.min.js'
+      ];
+      self.addEventListener('install', (e) => {
+        e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
+        self.skipWaiting();
+      });
+      self.addEventListener('activate', (e) => {
+        e.waitUntil(self.clients.claim());
+      });
+      self.addEventListener('fetch', (e) => {
+        const url = e.request.url;
+        if (url.includes('fonts.googleapis') || url.includes('fonts.gstatic') || url.includes('html2canvas')) {
+          e.respondWith(
+            caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+              const copy = resp.clone();
+              caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{});
+              return resp;
+            }).catch(() => caches.match(e.request)))
+          );
+        }
+      });
+    `;
+    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swURL, { scope: './' })
+      .catch(err => console.warn('SW register failed:', err));
+  }
+
+  // --- Install prompt ---
+  let deferredPrompt = null;
+  const installBar = document.getElementById('installBar');
+  const installBtn = document.getElementById('installBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Show install bar
+    installBar.classList.add('show');
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) {
+      showToast('برای نصب از منوی مرورگر «افزودن به صفحه اصلی» را انتخاب کنید', '');
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBar.classList.remove('show');
+    if (outcome === 'accepted') {
+      showToast('برنامه نصب شد 🎉', 'success');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installBar.classList.remove('show');
+    deferredPrompt = null;
+    showToast('برنامه با موفقیت نصب شد 🎉', 'success');
+  });
+
+  // iOS detection: show bar with hint (iOS has no beforeinstallprompt)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isIOS && !isStandalone) {
+    // show a hint after 2.5s
+    setTimeout(() => {
+      installBar.classList.add('show');
+      const txt = installBar.querySelector('span');
+      if (txt) txt.textContent = '📲 برای نصب: دکمه اشتراک‌گذاری ← افزودن به صفحه اصلی';
+      installBtn.textContent = 'باشه';
+      installBtn.addEventListener('click', () => installBar.classList.remove('show'));
+    }, 2500);
+  }
+})();
+
+/* ================= Helper ================= */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+let currentTab = 'line1';
+
+/* ================= localStorage keys ================= */
+const STORAGE_KEY = 'qc_app_state_v1';
+
+/* ================= Serialize current app state ================= */
+function collectState() {
+  const state = { lines: {} };
+  ['line1','line2'].forEach(tabId => {
+    const tab = document.getElementById(tabId);
+    const line = {
+      date: '',
+      shift: '',
+      user: $('.inp-user', tab)?.value || '',
+      plan: $('.inp-plan', tab)?.value || '',
+      desc: $('.inp-desc', tab)?.value || '',
+      degrees: {},
+      defects: [],
+    };
+    const dateEl = $('.inp-date', tab);
+    if (dateEl) line.date = dateEl.value;
+    const checked = $('input[type="radio"]:checked', tab);
+    if (checked) line.shift = checked.value;
+
+    $$('.inp-deg', tab).forEach(i => { line.degrees[i.dataset.d] = i.value; });
+
+    $$('.defects-grid .defect-item', tab).forEach(item => {
+      const name = $('.name', item)?.textContent.trim() || '';
+      const inp = $('.defect-inp', item);
+      const val = inp ? inp.value : '';
+      const isCustom = !!$('.del', item);
+      if (isCustom) {
+        line.defects.push({ name, val, custom: true });
+      } else {
+        line.defects.push({ name, val, custom: false, key: inp ? inp.dataset.name : name });
+      }
+    });
+    state.lines[tabId] = line;
+  });
+  return state;
+}
+
+/* ================= Save state ================= */
+let saveTimer = null;
+function saveState() {
+  try {
+    const state = collectState();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('save failed', e);
+  }
+}
+function saveStateDebounced() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 200);
+}
+
+/* ================= Apply state ================= */
+function applyState(state) {
+  if (!state || !state.lines) return;
+  ['line1','line2'].forEach(tabId => {
+    const line = state.lines[tabId];
+    if (!line) return;
+    const tab = document.getElementById(tabId);
+
+    if (line.date) $('.inp-date', tab).value = line.date;
+    if (line.shift) {
+      const r = $(`input[type="radio"][value="${line.shift}"]`, tab);
+      if (r) r.checked = true;
+    }
+    if (typeof line.user === 'string') $('.inp-user', tab).value = line.user;
+    if (typeof line.plan === 'string') $('.inp-plan', tab).value = line.plan;
+    if (typeof line.desc === 'string') $('.inp-desc', tab).value = line.desc;
+
+    if (line.degrees) {
+      $$('.inp-deg', tab).forEach(i => {
+        if (line.degrees[i.dataset.d] !== undefined) {
+          i.value = line.degrees[i.dataset.d];
+        }
+      });
+    }
+
+    if (Array.isArray(line.defects)) {
+      const standardMap = {};
+      $$('.defects-grid .defect-item', tab).forEach(item => {
+        const inp = $('.defect-inp', item);
+        if (inp && !$('.del', item)) {
+          standardMap[inp.dataset.name] = { item, inp };
+        }
+      });
+
+      line.defects.forEach(d => {
+        if (!d.custom && standardMap[d.name]) {
+          standardMap[d.name].inp.value = d.val || '';
+        }
+      });
+
+      $$('.defects-grid .defect-item', tab).forEach(item => {
+        if ($('.del', item)) item.remove();
+      });
+
+      const grid = $('.defects-grid', tab);
+      line.defects.forEach(d => {
+        if (d.custom) {
+          const item = document.createElement('div');
+          item.className = 'defect-item';
+          item.innerHTML = `
+            <button type="button" class="del" title="حذف">×</button>
+            <span class="name">${escapeHtml(d.name)}</span>
+            <input type="number" class="defect-inp" data-name="${escapeHtml(d.name)}" placeholder="%" min="0" max="100" value="${escapeHtml(d.val || '')}">
+          `;
+          grid.appendChild(item);
+          attachDeleteHandler(item, d.name);
+        }
+      });
+    }
+  });
+  updateSums('line1');
+  updateSums('line2');
+}
+
+/* ================= Jalali date utils ================= */
+function toJalali(gy, gm, gd) {
+  const g_d_m = [0,31,59,90,120,151,181,212,243,273,304,334];
+  let jy = (gy <= 1600) ? 0 : 979;
+  gy -= (gy <= 1600) ? 621 : 1600;
+  const gy2 = (gm > 2) ? (gy + 1) : gy;
+  let days = (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) - 80 + gd + g_d_m[gm - 1];
+  jy += 33 * Math.floor(days / 12053);
+  days %= 12053;
+  jy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    jy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  const jm = (days < 186) ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30);
+  const jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+  return [jy, jm, jd];
+}
+
+function jalaliToGregorian(jy, jm, jd) {
+  let gy = (jy <= 979) ? 621 : 1600;
+  jy -= (jy <= 979) ? 0 : 979;
+  let days = (365 * jy) + (Math.floor(jy / 33) * 8) + Math.floor(((jy % 33) + 3) / 4) + 78 + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+  gy += 400 * Math.floor(days / 146097);
+  days %= 146097;
+  if (days > 36524) {
+    gy += 100 * Math.floor(--days / 36524);
+    days %= 36524;
+    if (days >= 365) days++;
+  }
+  gy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    gy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  let gd = days + 1;
+  const sal_a = [0, 31, (gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  let gm = 0;
+  for (gm = 0; gm < 13 && gd > sal_a[gm]; gm++) gd -= sal_a[gm];
+  return [gy, gm, gd];
+}
+
+function isLeapJalali(jy) {
+  return ((jy - (jy > 0 ? 474 : 473)) % 2820 + 474 + 38) * 682 % 2816 < 682;
+}
+
+function jalaliMonthDays(jy, jm) {
+  if (jm <= 6) return 31;
+  if (jm <= 11) return 30;
+  return isLeapJalali(jy) ? 30 : 29;
+}
+
+const J_MONTHS = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+
+function todayJalali() {
+  const now = new Date();
+  return toJalali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+}
+
+function formatJalali(jy, jm, jd) {
+  return `${jy}/${String(jm).padStart(2,'0')}/${String(jd).padStart(2,'0')}`;
+}
+
+/* ================= Date picker ================= */
+let jpState = { jy: 0, jm: 0, jd: 0, targetInput: null, selected: null };
+
+function openDatePicker(inputEl) {
+  const today = todayJalali();
+  jpState.targetInput = inputEl;
+  if (inputEl.value && /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(inputEl.value.trim())) {
+    const [y, m, d] = inputEl.value.split('/').map(Number);
+    jpState.jy = y; jpState.jm = m; jpState.jd = d;
+    jpState.selected = { jy: y, jm: m, jd: d };
+  } else {
+    jpState.jy = today[0]; jpState.jm = today[1]; jpState.jd = today[2];
+    jpState.selected = null;
+  }
+  renderDatePicker();
+  $('#jpOverlay').classList.add('show');
+}
+
+function renderDatePicker() {
+  const { jy, jm } = jpState;
+  $('#jpTitle').textContent = `${J_MONTHS[jm - 1]} ${jy}`;
+
+  const daysEl = $('#jpDays');
+  daysEl.innerHTML = '';
+
+  const [gy, gm, gd] = jalaliToGregorian(jy, jm, 1);
+  const gDate = new Date(gy, gm - 1, gd);
+  const jsDay = gDate.getDay();
+  const persianWeekday = (jsDay + 1) % 7;
+
+  for (let i = 0; i < persianWeekday; i++) {
+    const b = document.createElement('button');
+    b.className = 'empty';
+    b.disabled = true;
+    daysEl.appendChild(b);
+  }
+
+  const daysInMonth = jalaliMonthDays(jy, jm);
+  const today = todayJalali();
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = d;
+    b.dataset.day = d;
+
+    if (today[0] === jy && today[1] === jm && today[2] === d) {
+      b.classList.add('today');
+    }
+    if (jpState.selected && jpState.selected.jy === jy && jpState.selected.jm === jm && jpState.selected.jd === d) {
+      b.classList.add('selected');
+    }
+    b.addEventListener('click', () => {
+      jpState.selected = { jy, jm, jd: d };
+      if (jpState.targetInput) {
+        jpState.targetInput.value = formatJalali(jy, jm, d);
+        saveStateDebounced();
+      }
+      closeDatePicker();
+    });
+    daysEl.appendChild(b);
+  }
+}
+
+function closeDatePicker() {
+  $('#jpOverlay').classList.remove('show');
+}
+
+$('#jpPrev').addEventListener('click', () => {
+  jpState.jm--;
+  if (jpState.jm < 1) { jpState.jm = 12; jpState.jy--; }
+  renderDatePicker();
+});
+$('#jpNext').addEventListener('click', () => {
+  jpState.jm++;
+  if (jpState.jm > 12) { jpState.jm = 1; jpState.jy++; }
+  renderDatePicker();
+});
+$('#jpToday').addEventListener('click', () => {
+  const t = todayJalali();
+  jpState.jy = t[0]; jpState.jm = t[1]; jpState.jd = t[2];
+  jpState.selected = { jy: t[0], jm: t[1], jd: t[2] };
+  if (jpState.targetInput) {
+    jpState.targetInput.value = formatJalali(t[0], t[1], t[2]);
+    saveStateDebounced();
+  }
+  closeDatePicker();
+});
+$('#jpCancel').addEventListener('click', closeDatePicker);
+$('#jpOverlay').addEventListener('click', e => {
+  if (e.target.id === 'jpOverlay') closeDatePicker();
+});
+
+$$('.inp-date').forEach(inp => {
+  inp.addEventListener('click', () => openDatePicker(inp));
+  inp.addEventListener('focus', () => openDatePicker(inp));
+});
+
+/* ================= About Modal ================= */
+$('#infoBtn').addEventListener('click', () => {
+  $('#aboutOverlay').classList.add('show');
+});
+$('#aboutClose').addEventListener('click', () => {
+  $('#aboutOverlay').classList.remove('show');
+});
+$('#aboutOverlay').addEventListener('click', e => {
+  if (e.target.id === 'aboutOverlay') $('#aboutOverlay').classList.remove('show');
+});
+
+/* ================= Tabs ================= */
+$$('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.tab-btn').forEach(b => b.classList.remove('active'));
+    $$('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = btn.dataset.tab;
+    $('#' + currentTab).classList.add('active');
+    updateSums(currentTab);
+  });
+});
+
+/* ================= Toast ================= */
+function showToast(msg, type = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  requestAnimationFrame(() => t.classList.add('show'));
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ================= Escape HTML ================= */
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+/* ================= Sum logic ================= */
+function updateSums(tabId) {
+  const tab = document.getElementById(tabId);
+  if (!tab) return;
+
+  let degSum = 0;
+  $$('.inp-deg', tab).forEach(i => {
+    const v = parseFloat(i.value);
+    if (!isNaN(v)) degSum += v;
+  });
+  const degEl = document.getElementById('degSum-' + tabId);
+  if (degEl) {
+    const prev = parseFloat(degEl.textContent) || 0;
+    degEl.textContent = formatSum(degSum);
+    if (prev !== degSum) pulseEl(degEl);
+  }
+
+  let defSum = 0;
+  $$('.defect-inp', tab).forEach(i => {
+    const v = parseFloat(i.value);
+    if (!isNaN(v)) defSum += v;
+  });
+  const defEl = document.getElementById('defSum-' + tabId);
+  if (defEl) {
+    const prev = parseFloat(defEl.textContent) || 0;
+    defEl.textContent = formatSum(defSum);
+    if (prev !== defSum) pulseEl(defEl);
+  }
+}
+
+function formatSum(n) {
+  if (Number.isInteger(n)) return n + '٪';
+  return n.toFixed(2).replace(/\.?0+$/, '') + '٪';
+}
+
+function pulseEl(el) {
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+  setTimeout(() => el.classList.remove('pop'), 250);
+}
+
+/* ================= Attach delete handler ================= */
+function attachDeleteHandler(item, name) {
+  const del = $('.del', item);
+  if (!del) return;
+  del.addEventListener('click', () => {
+    if (confirm(`آیا از حذف عیب «${name}» مطمئن هستید؟`)) {
+      item.remove();
+      const tab = item.closest('.tab-content');
+      if (tab) updateSums(tab.id);
+      showToast('عیب حذف شد', 'success');
+      saveStateDebounced();
+    }
+  });
+}
+
+/* ================= Global input listener ================= */
+document.addEventListener('input', e => {
+  if (e.target.classList.contains('inp-deg') || e.target.classList.contains('defect-inp')) {
+    const tab = e.target.closest('.tab-content');
+    if (tab) updateSums(tab.id);
+  }
+  if (
+    e.target.matches('input[type="text"], input[type="number"], textarea') ||
+    e.target.matches('input[type="radio"]')
+  ) {
+    saveStateDebounced();
+  }
+});
+document.addEventListener('change', e => {
+  if (
+    e.target.matches('input[type="radio"], input[type="text"], input[type="number"], textarea')
+  ) {
+    saveStateDebounced();
+  }
+});
+
+/* ================= Add defect ================= */
+$$('.btn-add-defect').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const card = btn.closest('.section-card');
+    const nameInp = $('.new-defect-name', card);
+    const name = nameInp.value.trim();
+
+    if (!name) { showToast('نام عیب را وارد کنید', 'error'); return; }
+
+    const list = $('.defects-grid', card);
+    const item = document.createElement('div');
+    item.className = 'defect-item';
+    item.innerHTML = `
+      <button type="button" class="del" title="حذف">×</button>
+      <span class="name">${escapeHtml(name)}</span>
+      <input type="number" class="defect-inp" data-name="${escapeHtml(name)}" placeholder="%" min="0" max="100">
+    `;
+    list.appendChild(item);
+    attachDeleteHandler(item, name);
+
+    nameInp.value = '';
+    nameInp.focus();
+    showToast('عیب اضافه شد', 'success');
+    saveStateDebounced();
+  });
+});
+
+/* ================= Reset ================= */
+$$('.btn-reset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = $('#' + currentTab);
+    const tabName = currentTab === 'line1' ? 'خط ۱' : 'خط ۲';
+
+    if (!confirm(`آیا از بازنشانی اطلاعات «${tabName}» مطمئن هستید؟\n(نام کاربر و عیوب اضافه‌شده حفظ می‌شوند)`)) return;
+
+    const t = todayJalali();
+    $('.inp-date', tab).value = formatJalali(t[0], t[1], t[2]);
+
+    $$('input[type="radio"]', tab).forEach(r => r.checked = false);
+    $('.inp-plan', tab).value = '';
+    $$('.inp-deg', tab).forEach(i => i.value = '');
+    $$('.defect-inp', tab).forEach(i => i.value = '');
+    $('.inp-desc', tab).value = '';
+    $$('.new-defect-name', tab).forEach(i => i.value = '');
+
+    updateSums(currentTab);
+    showToast('بازنشانی انجام شد', 'reset-toast');
+    saveStateDebounced();
+  });
+});
+
+/* ================= Export image (works in PWA too) ================= */
+$$('.btn-export').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const tab = $('#' + currentTab);
+    const shiftName = currentTab === 'line1' ? 'خط ۱' : 'خط ۲';
+
+    const date = $('.inp-date', tab).value.trim();
+    const user = $('.inp-user', tab).value.trim();
+    const plan = $('.inp-plan', tab).value.trim();
+    const desc = $('.inp-desc', tab).value.trim();
+
+    let shift = '';
+    const checked = $('input[type="radio"]:checked', tab);
+    if (checked) shift = checked.value;
+
+    const degrees = {};
+    $$('.inp-deg', tab).forEach(i => { degrees[i.dataset.d] = i.value.trim(); });
+
+    const defects = [];
+    $$('.defects-grid .defect-item', tab).forEach(item => {
+      const name = $('.name', item).textContent.trim();
+      const inp = $('.defect-inp', item);
+      const val = inp ? inp.value.trim() : '';
+      if (val !== '') defects.push({ name, val });
+    });
+
+    let defSum = 0;
+    $$('.defect-inp', tab).forEach(i => {
+      const v = parseFloat(i.value);
+      if (!isNaN(v)) defSum += v;
+    });
+
+    const wrapper = $('#outputWrapper');
+    wrapper.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.className = 'output-card';
+
+    let html = '';
+
+    html += `<div class="out-header">
+      <h2>آمار محصول نهایی — ${shiftName}</h2>
+      ${shift ? `<div class="out-shift">شیفت: ${shift}</div>` : ''}
+    </div>`;
+
+    const hasTop = date || user;
+    if (hasTop) {
+      html += `<div class="out-top">`;
+      if (date) html += `<div><span class="lbl">تاریخ</span><span class="val">${escapeHtml(date)}</span></div>`;
+      if (user) html += `<div><span class="lbl">نام کاربر</span><span class="val">${escapeHtml(user)}</span></div>`;
+      html += `</div>`;
+    }
+
+    if (plan) {
+      html += `<div class="out-plan"><span class="lbl">نام طرح</span><span class="val">${escapeHtml(plan)}</span></div>`;
+    }
+
+    const degKeys = ['1','2','4','5'];
+    const hasDeg = degKeys.some(k => degrees[k] !== '' && degrees[k] != null);
+    if (hasDeg) {
+      html += `<div class="out-defects-title">درجه‌ها</div>`;
+      html += `<div class="out-degrees">`;
+      degKeys.forEach(k => {
+        const v = degrees[k];
+        html += `<div class="deg">
+          <div class="lbl">درجه ${k}</div>
+          <div class="val">${v !== '' && v != null ? escapeHtml(v) + '٪' : '—'}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    if (hasDeg && defects.length) {
+      html += `<div class="out-fancy-divider">
+        <span class="star left">✦</span>
+        <span class="line"></span>
+        <span class="star right">❖</span>
+        <span class="line"></span>
+        <span class="star left">✦</span>
+      </div>`;
+    }
+
+    if (defects.length) {
+      html += `<div class="out-defects-title">
+        <span>عیوب</span>
+        <span class="out-sum-badge">جمع عیوب: ${formatSum(defSum)}</span>
+      </div>`;
+      html += `<div class="out-defects">`;
+      defects.forEach(d => {
+        html += `<div class="chip">${escapeHtml(d.name)} <b>${escapeHtml(d.val)}٪</b></div>`;
+      });
+      html += `</div>`;
+    }
+
+    if (desc) {
+      html += `<div class="out-desc"><span class="lbl">توضیحات</span>${escapeHtml(desc)}</div>`;
+    }
+
+    card.innerHTML = html;
+    wrapper.appendChild(card);
+
+    try { await document.fonts.ready; } catch(e) {}
+
+    setTimeout(async () => {
+      try {
+        const canvas = await html2canvas(card, {
+          scale: 2.2,
+          backgroundColor: '#ffffff',
+          useCORS: true,
+          logging: false,
+        });
+
+        const dataURL = canvas.toDataURL('image/png');
+        const fileName = `QC_${shiftName}_${Date.now()}.png`;
+
+        // Try native share if available (better UX in PWA on mobile)
+        const canShareFiles = !!(navigator.canShare && (() => {
+          try {
+            const testFile = new File([new Blob(['x'])], 'x.png', { type: 'image/png' });
+            return navigator.canShare({ files: [testFile] });
+          } catch(e) { return false; }
+        })());
+
+        if (canShareFiles) {
+          // Convert dataURL to Blob
+          const res = await fetch(dataURL);
+          const blob = await res.blob();
+          const file = new File([blob], fileName, { type: 'image/png' });
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'آمار محصول نهایی',
+              text: `خروجی ${shiftName}`,
+            });
+            showToast('عکس آماده شد 📸', 'success');
+            return;
+          } catch (shareErr) {
+            // user cancelled or share failed → fallback to download
+            if (shareErr && shareErr.name === 'AbortError') {
+              // user cancelled intentionally; do nothing
+              return;
+            }
+          }
+        }
+
+        // Fallback: download
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = dataURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('عکس با موفقیت ذخیره شد', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('خطا در تولید عکس', 'error');
+      } finally {
+        wrapper.innerHTML = '';
+      }
+    }, 120);
+  });
+});
+
+/* ================= INITIAL LOAD ================= */
+(function init() {
+  let saved = null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) saved = JSON.parse(raw);
+  } catch(e) { saved = null; }
+
+  if (saved) {
+    applyState(saved);
+  } else {
+    const t = todayJalali();
+    const val = formatJalali(t[0], t[1], t[2]);
+    $$('.inp-date').forEach(i => i.value = val);
+  }
+
+  updateSums('line1');
+  updateSums('line2');
+
+  window.addEventListener('beforeunload', () => saveState());
+})();
+</script>
+</body>
+</html>
